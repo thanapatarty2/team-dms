@@ -515,7 +515,7 @@ export default function App() {
 
   const blankStaff = { rank: "", name: "", section: "", role: "", active: true, exempt: false, points: 0, reliability: 80 };
   const [staffForm, setStaffForm] = useState(blankStaff);
-  const [newTask, setNewTask] = useState({
+  const [newTask,      setNewTask] = useState({
     title: "",
     task_date: new Date().toISOString().slice(0, 10),
     owner_id: "",
@@ -1210,7 +1210,7 @@ export default function App() {
   onClick={togglePush}
   disabled={pushBusy}
   title={pushEnabled ? "ปิด Push Notification" : "เปิด Push Notification"}
-  className={`hidden rounded-xl border p-2.5 transition md:block ${
+  className={`hidden rounded-xl border p-2.5 transition  ${
     pushEnabled
       ? "border-emerald-400/40 bg-emerald-500/15 text-emerald-200"
       : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
