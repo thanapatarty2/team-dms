@@ -1021,10 +1021,20 @@ export default function App() {
       await registerPushNotification(session.user.id);
       setPushEnabled(true);
       setNotice("✅ เปิด Push Notification สำเร็จ!");
-      new Notification("TEAM-DMS", {
-        body: "Push Notification พร้อมใช้งานแล้ว 🚀",
-        icon: "/icon-192.png",
-      });
+      if ("serviceWorker" in navigator) {
+  const reg = await navigator.serviceWorker.getRegistration("/sw.js");
+  if (reg) {
+    await reg.showNotification("TEAM-DMS", {
+      body: "Push Notification พร้อมใช้งานแล้ว 🚀",
+      icon: "/icon-192.png",
+    });
+  }
+} else {
+  new Notification("TEAM-DMS", {
+    body: "Push Notification พร้อมใช้งานแล้ว 🚀",
+    icon: "/icon-192.png",
+  });
+}
     }
   } catch (err) {
     setNotice(`Error: ${err.message}`);
