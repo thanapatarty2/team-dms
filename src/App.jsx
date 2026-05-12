@@ -2,17 +2,27 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import {
   AlertTriangle,
+  Bell,
   CheckCircle2,
+  ChevronRight,
+  ClipboardList,
   Clock3,
   Database,
   Edit3,
+  Expand,
   Flame,
+  Gauge,
   KeyRound,
+  LayoutDashboard,
+  Lock,
   LogOut,
+  Menu,
   Plus,
   RefreshCcw,
   Save,
   Search,
+  Settings,
+  Shield,
   ShieldCheck,
   Sparkles,
   Trash2,
@@ -28,40 +38,46 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const hasSupabaseConfig = Boolean(supabaseUrl && supabaseAnonKey);
 const supabase = hasSupabaseConfig ? createClient(supabaseUrl, supabaseAnonKey) : null;
 
-const priorityStyle = {
-  ต่ำ: "bg-slate-100 text-slate-700",
-  กลาง: "bg-blue-100 text-blue-700",
-  สูง: "bg-orange-100 text-orange-700",
-  วิกฤต: "bg-rose-100 text-rose-700",
-};
-
-const statusStyle = {
-  "ยังไม่เริ่ม": "bg-slate-100 text-slate-700 border-slate-200",
-  "กำลังทำ": "bg-amber-100 text-amber-800 border-amber-200",
-  "รอตรวจ": "bg-sky-100 text-sky-800 border-sky-200",
-  "เสร็จแล้ว": "bg-emerald-100 text-emerald-800 border-emerald-200",
-};
-
 const roleOptions = [
-  { value: "viewer", label: "Viewer", detail: "ดูอย่างเดียว" },
-  { value: "staff", label: "Staff", detail: "แก้สถานะงานของตัวเอง" },
-  { value: "battalion_admin", label: "Battalion Admin", detail: "จัดงาน/Assign งาน" },
-  { value: "super_admin", label: "Super Admin", detail: "คุมระบบทั้งหมด" },
-  { value: "override", label: "Override", detail: "ฝืน Rule ได้" },
+  { value: "viewer", label: "Viewer", detail: "สิทธิ์ดูข้อมูลเท่านั้น" },
+  { value: "staff", label: "Operator", detail: "สิทธิ์แก้สถานะงานของตัวเอง" },
+  { value: "battalion_admin", label: "Manager", detail: "สิทธิ์จัดการงานและทีม" },
+  { value: "super_admin", label: "Admin", detail: "สิทธิ์จัดการข้อมูลและผู้ใช้" },
+  { value: "override", label: "Super Admin", detail: "สิทธิ์เต็มรูปแบบในระบบ" },
 ];
 
 function getRoleLabel(value) {
+  if (value === "super_admin") return "Super Admin";
+  if (value === "override") return "Override";
   return roleOptions.find((role) => role.value === value)?.label || "Viewer";
 }
 
-function Card({ children, className = "" }) {
-  return <div className={`rounded-3xl border border-slate-200 bg-white shadow-sm ${className}`}>{children}</div>;
+const priorityStyle = {
+  ต่ำ: "border-sky-400/20 bg-sky-400/10 text-sky-200",
+  กลาง: "border-cyan-400/20 bg-cyan-400/10 text-cyan-200",
+  สูง: "border-rose-400/25 bg-rose-500/15 text-rose-200",
+  วิกฤต: "border-red-400/30 bg-red-500/20 text-red-200",
+};
+
+const statusStyle = {
+  "ยังไม่เริ่ม": "border-slate-500/30 bg-slate-500/15 text-slate-200",
+  "กำลังทำ": "border-cyan-400/25 bg-cyan-500/15 text-cyan-200",
+  "รอตรวจ": "border-amber-400/25 bg-amber-500/15 text-amber-200",
+  "เสร็จแล้ว": "border-emerald-400/25 bg-emerald-500/15 text-emerald-200",
+};
+
+function ShellCard({ children, className = "" }) {
+  return (
+    <div className={`rounded-[1.35rem] border border-white/10 bg-slate-900/55 shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur-xl ${className}`}>
+      {children}
+    </div>
+  );
 }
 
 function Button({ children, className = "", ...props }) {
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-black transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-black transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45 ${className}`}
       {...props}
     >
       {children}
@@ -70,23 +86,26 @@ function Button({ children, className = "", ...props }) {
 }
 
 function Badge({ children, className = "" }) {
-  return <span className={`rounded-full px-2.5 py-1 text-xs font-black ${className}`}>{children}</span>;
+  return <span className={`inline-flex items-center rounded-lg border px-2.5 py-1 text-xs font-black ${className}`}>{children}</span>;
 }
 
-function Stat({ icon: Icon, label, value, sub }) {
+function Field({ className = "", ...props }) {
   return (
-    <Card className="p-5">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <p className="text-sm font-medium text-slate-500">{label}</p>
-          <p className="mt-1 text-3xl font-black text-slate-950">{value}</p>
-          <p className="mt-1 text-xs text-slate-400">{sub}</p>
-        </div>
-        <div className="rounded-2xl bg-slate-950 p-3 text-white">
-          <Icon size={22} />
-        </div>
-      </div>
-    </Card>
+    <input
+      className={`h-11 rounded-xl border border-white/10 bg-slate-950/40 px-3 text-sm text-slate-100 outline-none ring-0 placeholder:text-slate-500 focus:border-cyan-400/50 focus:bg-slate-950/70 ${className}`}
+      {...props}
+    />
+  );
+}
+
+function Select({ className = "", children, ...props }) {
+  return (
+    <select
+      className={`h-11 rounded-xl border border-white/10 bg-slate-950/40 px-3 text-sm font-bold text-slate-100 outline-none focus:border-cyan-400/50 ${className}`}
+      {...props}
+    >
+      {children}
+    </select>
   );
 }
 
@@ -128,40 +147,50 @@ function Login() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 p-4 text-white md:p-8">
-      <div className="mx-auto flex min-h-[90vh] max-w-xl items-center">
-        <Card className="w-full border-white/10 bg-white/10 p-6 text-white backdrop-blur md:p-8">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-sm font-black">
+    <main className="min-h-screen bg-[#050b12] p-4 text-white md:p-8">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.24),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.18),transparent_32%)]" />
+      <div className="relative mx-auto flex min-h-[90vh] max-w-xl items-center">
+        <ShellCard className="w-full p-7 md:p-9">
+          <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1.5 text-sm font-black text-cyan-100">
             <Sparkles size={16} /> TEAM-DMS Realtime
           </div>
           <h1 className="text-4xl font-black tracking-tight md:text-5xl">เข้าสู่ระบบ</h1>
-          <p className="mt-3 text-sm leading-6 text-slate-300">ใช้ Email + Password สำหรับเข้าใช้งานระบบ</p>
-          <form onSubmit={signIn} className="mt-6 space-y-3">
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="your@email.com"
-              className="w-full rounded-2xl border border-white/10 bg-white px-4 py-3 text-slate-950 outline-none focus:ring-2 focus:ring-white/40"
-            />
-            <input
-              type="password"
-              required
-              minLength={8}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="รหัสผ่าน อย่างน้อย 8 ตัว"
-              className="w-full rounded-2xl border border-white/10 bg-white px-4 py-3 text-slate-950 outline-none focus:ring-2 focus:ring-white/40"
-            />
-            <Button disabled={loading} className="w-full bg-white text-slate-950 hover:bg-slate-100">
+          <p className="mt-3 text-sm leading-6 text-slate-400">เข้าสู่ระบบเพื่อใช้งานศูนย์ควบคุมงานและกำลังพลแบบ Realtime</p>
+          <form onSubmit={signIn} className="mt-7 space-y-3">
+            <Field type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com" className="w-full" />
+            <Field type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="รหัสผ่าน อย่างน้อย 8 ตัว" className="w-full" />
+            <Button disabled={loading} className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_0_30px_rgba(14,165,233,0.32)] hover:from-cyan-400 hover:to-blue-500">
               {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ / สมัครบัญชี"}
             </Button>
           </form>
-          {message && <p className="mt-4 rounded-2xl bg-white/10 p-4 text-sm text-slate-200">{message}</p>}
-        </Card>
+          {message && <p className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-200">{message}</p>}
+        </ShellCard>
       </div>
     </main>
+  );
+}
+
+function StatCard({ icon: Icon, title, value, sub, tone = "cyan" }) {
+  const tones = {
+    cyan: "from-cyan-500/25 to-blue-500/5 text-cyan-200 shadow-cyan-500/10",
+    emerald: "from-emerald-500/25 to-emerald-500/5 text-emerald-200 shadow-emerald-500/10",
+    amber: "from-amber-500/25 to-amber-500/5 text-amber-200 shadow-amber-500/10",
+    violet: "from-violet-500/25 to-purple-500/5 text-violet-200 shadow-violet-500/10",
+  };
+
+  return (
+    <ShellCard className={`overflow-hidden bg-gradient-to-br p-4 ${tones[tone]}`}>
+      <div className="flex items-center gap-4">
+        <div className="rounded-2xl border border-white/10 bg-white/10 p-3 shadow-lg">
+          <Icon size={23} />
+        </div>
+        <div>
+          <p className="text-xs font-bold text-slate-400">{title}</p>
+          <p className="mt-1 text-3xl font-black tracking-tight text-white">{value}</p>
+          <p className="mt-1 text-xs text-slate-400">{sub}</p>
+        </div>
+      </div>
+    </ShellCard>
   );
 }
 
@@ -197,36 +226,19 @@ export default function App() {
     points: 60,
   });
 
-  const blankStaff = {
-    rank: "",
-    name: "",
-    section: "",
-    role: "",
-    active: true,
-    exempt: false,
-    points: 0,
-    reliability: 80,
-  };
-
+  const blankStaff = { rank: "", name: "", section: "", role: "", active: true, exempt: false, points: 0, reliability: 80 };
   const [staffForm, setStaffForm] = useState(blankStaff);
 
   useEffect(() => {
     if (!supabase) return;
-
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
-    });
-
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => setSession(newSession));
     return () => listener.subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
     if (!supabase || !session) return;
-
     fetchAll();
-
     const channel = supabase
       .channel("team-dms-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, fetchTasks)
@@ -237,7 +249,6 @@ export default function App() {
         fetchProfiles();
       })
       .subscribe();
-
     return () => supabase.removeChannel(channel);
   }, [session]);
 
@@ -249,122 +260,63 @@ export default function App() {
 
   async function fetchProfile() {
     if (!supabase || !session?.user?.id) return;
-
     const { data, error } = await supabase
       .from("user_profiles")
       .select("*, staff:staff_id(rank,name,section)")
       .eq("id", session.user.id)
       .maybeSingle();
-
-    if (error) {
-      setNotice(error.message);
-      return;
-    }
-
-    setProfile(data || { id: session.user.id, email: session.user.email, app_role: "viewer", staff_id: null });
+    if (error) setNotice(error.message);
+    else setProfile(data || { id: session.user.id, email: session.user.email, app_role: "viewer", staff_id: null });
   }
 
   async function fetchProfiles() {
     if (!supabase) return;
-
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .select("*, staff:staff_id(rank,name,section)")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      setNotice(error.message);
-      return;
-    }
-
-    setProfiles(data || []);
+    const { data, error } = await supabase.from("user_profiles").select("*, staff:staff_id(rank,name,section)").order("created_at", { ascending: false });
+    if (error) setNotice(error.message);
+    else setProfiles(data || []);
   }
 
   async function fetchStaff() {
     if (!supabase) return;
-
-    const { data, error } = await supabase
-      .from("staff")
-      .select("*")
-      .order("points", { ascending: false });
-
+    const { data, error } = await supabase.from("staff").select("*").order("points", { ascending: false });
     if (error) {
       setNotice(error.message);
       return;
     }
-
     setStaff(data || []);
-
-    if (!newTask.owner_id && data?.[0]?.id) {
-      setNewTask((prev) => ({ ...prev, owner_id: data[0].id }));
-    }
+    if (!newTask.owner_id && data?.[0]?.id) setNewTask((prev) => ({ ...prev, owner_id: data[0].id }));
   }
 
   async function fetchTasks() {
     if (!supabase) return;
-
-    const { data, error } = await supabase
-      .from("tasks")
-      .select("*, staff:owner_id(name, rank, section)")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      setNotice(error.message);
-      return;
-    }
-
-    setTasks(data || []);
+    const { data, error } = await supabase.from("tasks").select("*, staff:owner_id(name, rank, section)").order("created_at", { ascending: false });
+    if (error) setNotice(error.message);
+    else setTasks(data || []);
   }
 
   async function fetchLogs() {
     if (!supabase) return;
-
-    const { data, error } = await supabase
-      .from("activity_logs")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(40);
-
-    if (error) {
-      setNotice(error.message);
-      return;
-    }
-
-    setLogs(data || []);
+    const { data, error } = await supabase.from("activity_logs").select("*").order("created_at", { ascending: false }).limit(40);
+    if (error) setNotice(error.message);
+    else setLogs(data || []);
   }
 
   async function writeLog(action, targetTable, targetId, description) {
     if (!supabase || !session?.user?.id) return;
-
-    const { error } = await supabase.from("activity_logs").insert({
-      user_id: session.user.id,
-      action,
-      target_table: targetTable,
-      target_id: targetId,
-      description,
-    });
-
+    const { error } = await supabase.from("activity_logs").insert({ user_id: session.user.id, action, target_table: targetTable, target_id: targetId, description });
     if (error) console.error("Activity log error:", error.message);
   }
 
   const validation = useMemo(() => {
     if (!newTask.title.trim()) return { ok: false, message: "กรอกชื่องานก่อน" };
     if (!canManageTasks) return { ok: false, message: "Role นี้ไม่มีสิทธิ์สร้างงาน" };
-
-    const owner = staff.find((person) => person.id === newTask.owner_id);
+    const owner = staff.find((p) => p.id === newTask.owner_id);
     if (!owner) return { ok: false, message: "เลือกผู้รับผิดชอบก่อน" };
     if (!owner.active) return { ok: false, message: "เจ้าหน้าที่ inactive รับงานไม่ได้" };
     if (owner.exempt) return { ok: false, message: "เจ้าหน้าที่ exempt รับงานไม่ได้" };
-
-    const duplicate = tasks.some(
-      (task) => task.task_date === newTask.task_date && task.title.trim().toLowerCase() === newTask.title.trim().toLowerCase()
-    );
+    const duplicate = tasks.some((t) => t.task_date === newTask.task_date && t.title.trim().toLowerCase() === newTask.title.trim().toLowerCase());
     if (duplicate) return { ok: false, message: "พบงานชื่อซ้ำในวันเดียวกัน" };
-
-    const overlap = tasks.some(
-      (task) => task.task_date === newTask.task_date && task.owner_id === newTask.owner_id && task.status !== "เสร็จแล้ว"
-    );
-
+    const overlap = tasks.some((t) => t.task_date === newTask.task_date && t.owner_id === newTask.owner_id && t.status !== "เสร็จแล้ว");
     if (overlap && !canOverride) return { ok: false, message: "คนนี้มีงานค้างในวันเดียวกัน ต้องใช้สิทธิ์ Override" };
     return { ok: true, message: "ผ่าน Rule Engine พร้อมบันทึก" };
   }, [newTask, staff, tasks, canManageTasks, canOverride]);
@@ -380,36 +332,22 @@ export default function App() {
 
   const filteredTasks = useMemo(() => {
     const keyword = query.toLowerCase();
-    return tasks.filter((task) => {
-      return (
-        task.title?.toLowerCase().includes(keyword) ||
-        task.category?.toLowerCase().includes(keyword) ||
-        task.priority?.toLowerCase().includes(keyword) ||
-        task.status?.toLowerCase().includes(keyword) ||
-        task.staff?.name?.toLowerCase().includes(keyword)
-      );
-    });
+    return tasks.filter((task) => task.title?.toLowerCase().includes(keyword) || task.category?.toLowerCase().includes(keyword) || task.priority?.toLowerCase().includes(keyword) || task.status?.toLowerCase().includes(keyword) || task.staff?.name?.toLowerCase().includes(keyword));
   }, [query, tasks]);
 
   const filteredStaff = useMemo(() => {
     const keyword = staffQuery.toLowerCase();
-    return staff.filter((person) => {
-      return (
-        person.name?.toLowerCase().includes(keyword) ||
-        person.rank?.toLowerCase().includes(keyword) ||
-        person.section?.toLowerCase().includes(keyword) ||
-        person.role?.toLowerCase().includes(keyword)
-      );
-    });
+    return staff.filter((person) => person.name?.toLowerCase().includes(keyword) || person.rank?.toLowerCase().includes(keyword) || person.section?.toLowerCase().includes(keyword) || person.role?.toLowerCase().includes(keyword));
   }, [staffQuery, staff]);
 
   const stats = useMemo(() => {
     const total = tasks.length;
-    const active = tasks.filter((task) => task.status !== "เสร็จแล้ว").length;
-    const urgent = tasks.filter((task) => task.priority === "สูง" || task.priority === "วิกฤต").length;
-    const filled = total ? Math.round((tasks.filter((task) => task.owner_id).length / total) * 100) : 0;
-    const activeStaff = staff.filter((person) => person.active && !person.exempt).length;
-    return { total, active, urgent, filled, activeStaff };
+    const active = tasks.filter((t) => t.status !== "เสร็จแล้ว").length;
+    const done = tasks.filter((t) => t.status === "เสร็จแล้ว").length;
+    const urgent = tasks.filter((t) => t.priority === "สูง" || t.priority === "วิกฤต").length;
+    const filled = total ? Math.round((tasks.filter((t) => t.owner_id).length / total) * 100) : 0;
+    const activeStaff = staff.filter((p) => p.active && !p.exempt).length;
+    return { total, active, done, urgent, filled, activeStaff };
   }, [tasks, staff]);
 
   function canUpdateTask(task) {
@@ -419,10 +357,8 @@ export default function App() {
   async function addTask(event) {
     event.preventDefault();
     if (!supabase || !validation.ok) return;
-
     setSaving(true);
     setNotice("");
-
     const { data, error } = await supabase
       .from("tasks")
       .insert({
@@ -438,15 +374,12 @@ export default function App() {
       })
       .select()
       .single();
-
-    if (error) {
-      setNotice(error.message);
-    } else {
+    if (error) setNotice(error.message);
+    else {
       setNotice("บันทึกงานสำเร็จ ทุกเครื่องจะเห็นข้อมูลนี้แบบ realtime");
       await writeLog("CREATE_TASK", "tasks", data.id, `สร้างงาน: ${data.title}`);
       setNewTask((prev) => ({ ...prev, title: "", priority: "กลาง", status: "ยังไม่เริ่ม", category: "ทั่วไป", points: 60 }));
     }
-
     setSaving(false);
   }
 
@@ -457,45 +390,23 @@ export default function App() {
       setNotice("ไม่มีสิทธิ์เปลี่ยนสถานะงานนี้");
       return;
     }
-
     const { error } = await supabase.from("tasks").update({ status }).eq("id", id);
-    if (error) {
-      setNotice(error.message);
-      return;
-    }
-
-    await writeLog("UPDATE_STATUS", "tasks", id, `เปลี่ยนสถานะงาน "${task?.title || id}" เป็น "${status}"`);
+    if (error) setNotice(error.message);
+    else await writeLog("UPDATE_STATUS", "tasks", id, `เปลี่ยนสถานะงาน "${task?.title || id}" เป็น "${status}"`);
   }
 
   async function deleteTask(id) {
     if (!supabase || !canManageTasks) return;
-
-    const confirmed = window.confirm("ยืนยันลบงานนี้?");
-    if (!confirmed) return;
-
+    if (!window.confirm("ยืนยันลบงานนี้?")) return;
     const task = tasks.find((item) => item.id === id);
     const { error } = await supabase.from("tasks").delete().eq("id", id);
-
-    if (error) {
-      setNotice(error.message);
-      return;
-    }
-
-    await writeLog("DELETE_TASK", "tasks", id, `ลบงาน: ${task?.title || id}`);
+    if (error) setNotice(error.message);
+    else await writeLog("DELETE_TASK", "tasks", id, `ลบงาน: ${task?.title || id}`);
   }
 
   function startEditStaff(person) {
     setEditingStaffId(person.id);
-    setStaffForm({
-      rank: person.rank || "",
-      name: person.name || "",
-      section: person.section || "",
-      role: person.role || "",
-      active: Boolean(person.active),
-      exempt: Boolean(person.exempt),
-      points: Number(person.points) || 0,
-      reliability: Number(person.reliability) || 80,
-    });
+    setStaffForm({ rank: person.rank || "", name: person.name || "", section: person.section || "", role: person.role || "", active: Boolean(person.active), exempt: Boolean(person.exempt), points: Number(person.points) || 0, reliability: Number(person.reliability) || 80 });
   }
 
   function cancelEditStaff() {
@@ -506,21 +417,9 @@ export default function App() {
   async function saveStaff(event) {
     event.preventDefault();
     if (!supabase || !staffValidation.ok) return;
-
     setSavingStaff(true);
     setNotice("");
-
-    const payload = {
-      rank: staffForm.rank.trim(),
-      name: staffForm.name.trim(),
-      section: staffForm.section.trim(),
-      role: staffForm.role.trim(),
-      active: Boolean(staffForm.active),
-      exempt: Boolean(staffForm.exempt),
-      points: Number(staffForm.points) || 0,
-      reliability: Number(staffForm.reliability) || 0,
-    };
-
+    const payload = { rank: staffForm.rank.trim(), name: staffForm.name.trim(), section: staffForm.section.trim(), role: staffForm.role.trim(), active: Boolean(staffForm.active), exempt: Boolean(staffForm.exempt), points: Number(staffForm.points) || 0, reliability: Number(staffForm.reliability) || 0 };
     if (editingStaffId) {
       const { data, error } = await supabase.from("staff").update(payload).eq("id", editingStaffId).select().single();
       if (error) setNotice(error.message);
@@ -538,68 +437,36 @@ export default function App() {
         setStaffForm(blankStaff);
       }
     }
-
     setSavingStaff(false);
   }
 
   async function toggleStaffFlag(person, field) {
     if (!supabase || !canManageStaff) return;
-
     const nextValue = !person[field];
     const { error } = await supabase.from("staff").update({ [field]: nextValue }).eq("id", person.id);
-
-    if (error) {
-      setNotice(error.message);
-      return;
-    }
-
-    await writeLog(
-      field === "active" ? "TOGGLE_ACTIVE" : "TOGGLE_EXEMPT",
-      "staff",
-      person.id,
-      `${field === "active" ? "เปลี่ยนสถานะ Active" : "เปลี่ยนสถานะ Exempt"}: ${person.rank} ${person.name} = ${nextValue}`
-    );
+    if (error) setNotice(error.message);
+    else await writeLog(field === "active" ? "TOGGLE_ACTIVE" : "TOGGLE_EXEMPT", "staff", person.id, `${field === "active" ? "เปลี่ยน Active" : "เปลี่ยน Exempt"}: ${person.rank} ${person.name} = ${nextValue}`);
   }
 
   async function deleteStaff(id) {
     if (!supabase || !canManageStaff) return;
-
     const person = staff.find((item) => item.id === id);
     const assignedTasks = tasks.filter((task) => task.owner_id === id);
-    const confirmed = window.confirm(
-      assignedTasks.length > 0
-        ? `เจ้าหน้าที่คนนี้มีงานที่เกี่ยวข้อง ${assignedTasks.length} งาน ถ้าลบ งานเหล่านั้นจะไม่มีผู้รับผิดชอบ ยืนยันลบ?`
-        : "ยืนยันลบเจ้าหน้าที่นี้?"
-    );
+    const confirmed = window.confirm(assignedTasks.length > 0 ? `เจ้าหน้าที่คนนี้มีงานที่เกี่ยวข้อง ${assignedTasks.length} งาน ถ้าลบ งานเหล่านั้นจะไม่มีผู้รับผิดชอบ ยืนยันลบ?` : "ยืนยันลบเจ้าหน้าที่นี้?");
     if (!confirmed) return;
-
     const { error } = await supabase.from("staff").delete().eq("id", id);
-    if (error) {
-      setNotice(error.message);
-      return;
-    }
-
-    await writeLog("DELETE_STAFF", "staff", id, `ลบเจ้าหน้าที่: ${person?.rank || ""} ${person?.name || id}`);
-    if (newTask.owner_id === id) setNewTask((prev) => ({ ...prev, owner_id: "" }));
+    if (error) setNotice(error.message);
+    else await writeLog("DELETE_STAFF", "staff", id, `ลบเจ้าหน้าที่: ${person?.rank || ""} ${person?.name || id}`);
   }
 
   async function updateUserProfile(userId, patch) {
     if (!supabase || !canManageRoles) return;
-
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .update(patch)
-      .eq("id", userId)
-      .select()
-      .single();
-
-    if (error) {
-      setNotice(error.message);
-      return;
+    const { data, error } = await supabase.from("user_profiles").update(patch).eq("id", userId).select().single();
+    if (error) setNotice(error.message);
+    else {
+      setNotice("อัปเดตสิทธิ์ผู้ใช้สำเร็จ");
+      await writeLog("UPDATE_USER_ROLE", "user_profiles", userId, `อัปเดตผู้ใช้ ${data.email}: role=${data.app_role}`);
     }
-
-    setNotice("อัปเดตสิทธิ์ผู้ใช้สำเร็จ");
-    await writeLog("UPDATE_USER_ROLE", "user_profiles", userId, `อัปเดตผู้ใช้ ${data.email}: role=${data.app_role}`);
   }
 
   async function signOut() {
@@ -610,235 +477,240 @@ export default function App() {
   if (!hasSupabaseConfig) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-950 p-6 text-white">
-        <div className="max-w-xl rounded-3xl bg-white/10 p-6">
+        <ShellCard className="max-w-xl p-6">
           <h1 className="text-2xl font-black">ยังไม่ได้ตั้งค่า Supabase</h1>
-          <p className="mt-3 text-sm leading-6 text-slate-300">ต้องสร้างไฟล์ <b>.env.local</b> แล้วใส่ VITE_SUPABASE_URL และ VITE_SUPABASE_ANON_KEY ก่อน</p>
-        </div>
+          <p className="mt-3 text-sm leading-6 text-slate-300">ต้องสร้างไฟล์ .env.local แล้วใส่ VITE_SUPABASE_URL และ VITE_SUPABASE_ANON_KEY ก่อน</p>
+        </ShellCard>
       </main>
     );
   }
 
   if (!session) return <Login />;
 
+  const navItems = [
+    [LayoutDashboard, "Dashboard"],
+    [Gauge, "Operations Room"],
+    [Users, "Staff Board"],
+    [Lock, "User Role"],
+    [UserCog, "Staff Management"],
+    [ShieldCheck, "Rule Engine"],
+    [Database, "Activity Log"],
+    [Settings, "Settings"],
+  ];
+
   return (
-    <main className="min-h-screen bg-[#f5f7fb] p-4 text-slate-950 md:p-8">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <section className="overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-950 text-white shadow-xl">
-          <div className="grid gap-6 p-6 md:grid-cols-[1.4fr_0.8fr] md:p-8">
+    <main className="min-h-screen bg-[#050b12] text-slate-100">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(14,165,233,0.18),transparent_30%),radial-gradient(circle_at_75%_30%,rgba(139,92,246,0.12),transparent_28%),linear-gradient(180deg,rgba(15,23,42,0.92),#050b12)]" />
+      <div className="relative grid min-h-screen grid-cols-1 lg:grid-cols-[250px_1fr]">
+        <aside className="hidden border-r border-white/10 bg-slate-950/60 p-5 backdrop-blur-xl lg:flex lg:flex-col">
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 p-2 shadow-[0_0_28px_rgba(14,165,233,0.45)]">
+              <Shield className="text-white" size={24} />
+            </div>
             <div>
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-sm font-black text-slate-200">
-                <Sparkles size={16} /> TEAM-DMS Realtime Command System
-              </div>
-              <h1 className="text-4xl font-black tracking-tight md:text-6xl">TEAM-DMS</h1>
-              <p className="mt-2 text-xl font-bold text-slate-200">Duty / Mission / Staff Assignment</p>
-              <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-400 md:text-base">
-                ระบบจัดงานและเวรทีมแบบ realtime พร้อม Role & Permission จาก Database จริง
-              </p>
-            </div>
-
-            <div className="rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-bold text-slate-300">Signed in as</p>
-                  <p className="mt-1 break-all text-sm font-black">{session.user.email}</p>
-                </div>
-                <Button onClick={signOut} className="bg-white/10 text-white hover:bg-white/20">
-                  <LogOut size={16} /> ออก
-                </Button>
-              </div>
-
-              <div className="mt-5 rounded-2xl bg-white/10 p-4">
-                <p className="text-sm font-bold text-slate-300">Database Role</p>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <Badge className="bg-white text-slate-950">{getRoleLabel(appRole)}</Badge>
-                  {profile?.staff && <Badge className="bg-emerald-300 text-emerald-950">{profile.staff.rank} {profile.staff.name}</Badge>}
-                </div>
-                <p className="mt-3 text-xs leading-5 text-slate-400">สิทธิ์นี้ดึงจากตาราง user_profiles ไม่ใช่ปุ่มที่เปลี่ยนเองหน้าเว็บ</p>
-              </div>
-
-              <div className="mt-4 flex items-center gap-2 text-sm text-emerald-300">
-                <ShieldCheck size={17} /> Realtime connected
-              </div>
+              <p className="text-xl font-black tracking-wide">TEAM-DMS</p>
+              <p className="text-xs text-slate-500">Secure Assign Achieve</p>
             </div>
           </div>
-        </section>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-          <Stat icon={Database} label="Missions" value={stats.total} sub="งาน/เวรทั้งหมด" />
-          <Stat icon={Clock3} label="Active" value={stats.active} sub="ยังไม่ปิดงาน" />
-          <Stat icon={Flame} label="Urgent" value={stats.urgent} sub="สูง/วิกฤต" />
-          <Stat icon={Users} label="Available Staff" value={stats.activeStaff} sub="พร้อมรับงาน" />
-          <Stat icon={CheckCircle2} label="Filled" value={`${stats.filled}%`} sub="มีผู้รับผิดชอบแล้ว" />
-        </section>
+          <nav className="mt-10 space-y-2">
+            {navItems.map(([Icon, label], index) => (
+              <a key={label} className={`group flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-bold transition ${index === 0 ? "bg-cyan-400/10 text-cyan-200 shadow-[inset_3px_0_0_rgba(34,211,238,0.9)]" : "text-slate-400 hover:bg-white/5 hover:text-slate-100"}`}>
+                <Icon size={18} /> {label}
+              </a>
+            ))}
+          </nav>
 
-        {notice && (
-          <div className="flex items-center gap-2 rounded-3xl border border-slate-200 bg-white p-4 text-sm font-bold text-slate-700 shadow-sm">
-            <AlertTriangle size={17} /> {notice}
-          </div>
-        )}
-
-        <section className="grid gap-6 xl:grid-cols-[1.6fr_0.9fr]">
-          <Card className="p-5 md:p-6">
-            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+          <div className="mt-auto rounded-3xl border border-cyan-400/20 bg-cyan-400/10 p-4 shadow-[0_0_32px_rgba(14,165,233,0.14)]">
+            <div className="flex items-center gap-3">
+              <ShieldCheck className="text-cyan-300" />
               <div>
-                <h2 className="text-2xl font-black">Operations Room</h2>
-                <p className="text-sm text-slate-500">เพิ่มงานจริง บันทึกลง Supabase และ sync ทุกเครื่องทันที</p>
-              </div>
-              <div className="relative w-full md:max-w-xs">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
-                <input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="ค้นหางาน / คน / สถานะ"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-slate-300"
-                />
+                <p className="font-black">TEAM-DMS v2.5</p>
+                <p className="text-xs text-slate-400">Realtime Operations</p>
               </div>
             </div>
+          </div>
+        </aside>
 
-            <form onSubmit={addTask} className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-4">
-              <div className="grid gap-3 lg:grid-cols-[1.6fr_0.9fr_0.95fr_0.8fr]">
-                <input value={newTask.title} onChange={(event) => setNewTask({ ...newTask, title: event.target.value })} placeholder="พิมพ์ชื่องาน" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-slate-300" />
-                <input type="date" value={newTask.task_date} onChange={(event) => setNewTask({ ...newTask, task_date: event.target.value })} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-slate-300" />
-                <select value={newTask.owner_id} onChange={(event) => setNewTask({ ...newTask, owner_id: event.target.value })} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-slate-300">
-                  <option value="">เลือกผู้รับผิดชอบ</option>
-                  {staff.map((person) => <option key={person.id} value={person.id}>{person.rank} {person.name} • {person.section}</option>)}
-                </select>
-                <input type="time" value={newTask.due_time} onChange={(event) => setNewTask({ ...newTask, due_time: event.target.value })} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-slate-300" />
-              </div>
-
-              <div className="mt-3 grid gap-3 md:grid-cols-[0.8fr_0.8fr_0.9fr_0.7fr_auto]">
-                <select value={newTask.priority} onChange={(event) => setNewTask({ ...newTask, priority: event.target.value })} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-slate-300"><option>ต่ำ</option><option>กลาง</option><option>สูง</option><option>วิกฤต</option></select>
-                <select value={newTask.status} onChange={(event) => setNewTask({ ...newTask, status: event.target.value })} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-slate-300"><option>ยังไม่เริ่ม</option><option>กำลังทำ</option><option>รอตรวจ</option><option>เสร็จแล้ว</option></select>
-                <input value={newTask.category} onChange={(event) => setNewTask({ ...newTask, category: event.target.value })} placeholder="หมวดงาน" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-slate-300" />
-                <input type="number" value={newTask.points} onChange={(event) => setNewTask({ ...newTask, points: event.target.value })} placeholder="แต้ม" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-slate-300" />
-                <Button disabled={!validation.ok || saving} className="bg-slate-950 text-white hover:bg-slate-800"><Plus size={16} /> {saving ? "Saving" : "Save"}</Button>
-              </div>
-
-              <div className={`mt-3 flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-black ${validation.ok ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
-                {validation.ok ? <CheckCircle2 size={17} /> : <AlertTriangle size={17} />}{validation.message}
-              </div>
-            </form>
-
-            <div className="mt-5 overflow-hidden rounded-3xl border border-slate-200">
-              <div className="grid grid-cols-[1fr_125px_120px_115px_115px_110px] bg-slate-950 px-4 py-3 text-xs font-black uppercase tracking-wide text-white max-lg:hidden">
-                <span>Mission</span><span>Owner</span><span>Date</span><span>Priority</span><span>Status</span><span>Action</span>
-              </div>
-              <div className="divide-y divide-slate-100 bg-white">
-                {loading ? <div className="p-6 text-sm text-slate-500">กำลังโหลดข้อมูล...</div> : filteredTasks.length === 0 ? <div className="p-6 text-sm text-slate-500">ยังไม่มีงาน หรือไม่พบรายการที่ค้นหา</div> : filteredTasks.map((task) => (
-                  <div key={task.id} className="grid gap-3 px-4 py-4 hover:bg-slate-50 lg:grid-cols-[1fr_125px_120px_115px_115px_110px] lg:items-center">
-                    <div><p className="font-black text-slate-950">{task.title}</p><p className="mt-1 text-xs text-slate-400">{task.category} • +{task.points} pts • created {new Date(task.created_at).toLocaleString()}</p></div>
-                    <div className="text-sm font-bold text-slate-700">{task.staff?.rank} {task.staff?.name}</div>
-                    <div className="text-sm font-bold text-slate-500">{task.task_date} {task.due_time?.slice(0, 5)}</div>
-                    <div><Badge className={priorityStyle[task.priority]}>{task.priority}</Badge></div>
-                    <div>
-                      <select value={task.status} onChange={(event) => updateStatus(task.id, event.target.value)} disabled={!canUpdateTask(task)} className={`rounded-full border px-2.5 py-1 text-xs font-black outline-none ${statusStyle[task.status]}`}>
-                        <option>ยังไม่เริ่ม</option><option>กำลังทำ</option><option>รอตรวจ</option><option>เสร็จแล้ว</option>
-                      </select>
-                    </div>
-                    <div><button disabled={!canManageTasks} onClick={() => deleteTask(task.id)} className="rounded-xl bg-rose-50 px-3 py-2 text-xs font-black text-rose-700 disabled:opacity-40">ลบ</button></div>
-                  </div>
-                ))}
-              </div>
+        <section className="min-w-0 p-4 md:p-6">
+          <div className="mb-5 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Menu className="text-slate-400" />
+              <span className="text-sm font-bold text-slate-500">Command Dashboard</span>
             </div>
-          </Card>
+            <div className="flex items-center gap-4 text-slate-400">
+              <Search size={20} />
+              <Bell size={20} />
+              <Expand size={19} />
+            </div>
+          </div>
 
-          <div className="space-y-6">
-            {canManageRoles && (
-              <Card className="p-5 md:p-6">
-                <div className="flex items-center justify-between">
-                  <div><h2 className="text-2xl font-black">User Role Management</h2><p className="text-sm text-slate-500">กำหนดสิทธิ์ผู้ใช้จาก Database</p></div>
-                  <KeyRound className="text-slate-400" />
+          <div className="grid gap-5 xl:grid-cols-[1.55fr_0.85fr]">
+            <div className="space-y-5">
+              <ShellCard className="relative overflow-hidden p-7">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(14,165,233,0.22),transparent_25%),linear-gradient(90deg,rgba(15,23,42,0.2),transparent)]" />
+                <div className="relative">
+                  <h1 className="text-5xl font-black tracking-[0.12em] text-white md:text-6xl">TEAM-DMS</h1>
+                  <p className="mt-3 text-lg font-black text-cyan-300">ระบบบริหารจัดการมอบหมายงานและทรัพยากรบุคคล</p>
+                  <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">ศูนย์ปฏิบัติการดิจิทัล เพื่อการทำงานเป็นทีมที่มีประสิทธิภาพ พร้อม Role, Staff, Rule Engine และ Realtime Sync</p>
                 </div>
-                <div className="mt-5 space-y-3">
-                  {profiles.map((userProfile) => (
-                    <div key={userProfile.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                      <p className="break-all font-black text-slate-900">{userProfile.email}</p>
-                      <p className="mt-1 text-xs text-slate-500">linked staff: {userProfile.staff ? `${userProfile.staff.rank} ${userProfile.staff.name}` : "ยังไม่ผูก Staff"}</p>
-                      <div className="mt-3 grid gap-2 md:grid-cols-2">
-                        <select value={userProfile.app_role || "viewer"} onChange={(event) => updateUserProfile(userProfile.id, { app_role: event.target.value })} className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold outline-none">
-                          {roleOptions.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}
-                        </select>
-                        <select value={userProfile.staff_id || ""} onChange={(event) => updateUserProfile(userProfile.id, { staff_id: event.target.value || null })} className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold outline-none">
-                          <option value="">ไม่ผูก Staff</option>
-                          {staff.map((person) => <option key={person.id} value={person.id}>{person.rank} {person.name}</option>)}
-                        </select>
+              </ShellCard>
+
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <StatCard icon={ClipboardList} title="งานทั้งหมด" value={stats.total} sub="ภารกิจในระบบ" tone="cyan" />
+                <StatCard icon={CheckCircle2} title="งานที่เสร็จสิ้น" value={stats.done} sub={`${stats.filled}% มีผู้รับผิดชอบ`} tone="emerald" />
+                <StatCard icon={Clock3} title="กำลังดำเนินการ" value={stats.active} sub="งานที่ยังไม่ปิด" tone="amber" />
+                <StatCard icon={Flame} title="งานเร่งด่วน" value={stats.urgent} sub="สูง / วิกฤต" tone="violet" />
+              </div>
+
+              {notice && <div className="flex items-center gap-2 rounded-2xl border border-amber-400/20 bg-amber-500/10 p-4 text-sm font-bold text-amber-100"><AlertTriangle size={17} /> {notice}</div>}
+
+              <ShellCard className="p-5">
+                <div className="mb-4 flex items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-xl font-black text-white">Operations Room</h2>
+                    <p className="text-sm text-slate-500">สร้างงานใหม่และติดตามภารกิจล่าสุด</p>
+                  </div>
+                  <div className="relative hidden w-72 md:block">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={17} />
+                    <Field value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ค้นหางาน / คน / สถานะ" className="w-full pl-10" />
+                  </div>
+                </div>
+
+                <div className="grid gap-4 xl:grid-cols-[0.95fr_1.35fr]">
+                  <form onSubmit={addTask} className="rounded-2xl border border-white/10 bg-slate-950/30 p-4">
+                    <p className="mb-3 text-sm font-black text-slate-200">สร้างงานใหม่</p>
+                    <div className="space-y-3">
+                      <Field value={newTask.title} onChange={(e) => setNewTask({ ...newTask, title: e.target.value })} placeholder="ระบุชื่องาน" className="w-full" />
+                      <Field value={newTask.category} onChange={(e) => setNewTask({ ...newTask, category: e.target.value })} placeholder="ระบุประเภท/หมวดงาน" className="w-full" />
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <Select value={newTask.owner_id} onChange={(e) => setNewTask({ ...newTask, owner_id: e.target.value })}>
+                          <option value="">เลือกผู้รับผิดชอบ</option>
+                          {staff.map((p) => <option key={p.id} value={p.id}>{p.rank} {p.name}</option>)}
+                        </Select>
+                        <Field type="date" value={newTask.task_date} onChange={(e) => setNewTask({ ...newTask, task_date: e.target.value })} />
+                      </div>
+                      <div className="grid gap-3 md:grid-cols-3">
+                        <Select value={newTask.priority} onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}><option>ต่ำ</option><option>กลาง</option><option>สูง</option><option>วิกฤต</option></Select>
+                        <Select value={newTask.status} onChange={(e) => setNewTask({ ...newTask, status: e.target.value })}><option>ยังไม่เริ่ม</option><option>กำลังทำ</option><option>รอตรวจ</option><option>เสร็จแล้ว</option></Select>
+                        <Field type="time" value={newTask.due_time} onChange={(e) => setNewTask({ ...newTask, due_time: e.target.value })} />
+                      </div>
+                      <div className={`rounded-xl border px-3 py-2 text-xs font-black ${validation.ok ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-200" : "border-rose-400/20 bg-rose-500/10 text-rose-200"}`}>{validation.message}</div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button type="button" onClick={() => setNewTask((p) => ({ ...p, title: "", category: "ทั่วไป" }))} className="border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10">รีเซ็ต</Button>
+                        <Button disabled={!validation.ok || saving} className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-[0_0_24px_rgba(14,165,233,0.35)]">{saving ? "Saving" : "บันทึกงาน"}</Button>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </Card>
-            )}
+                  </form>
 
-            <Card className="p-5 md:p-6">
-              <div className="flex items-center justify-between">
-                <div><h2 className="text-2xl font-black">Staff Management</h2><p className="text-sm text-slate-500">เพิ่ม / แก้ / ลบ / ปิดสถานะเจ้าหน้าที่</p></div>
-                <UserPlus className="text-slate-400" />
-              </div>
-
-              <form onSubmit={saveStaff} className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                <div className="grid gap-3 md:grid-cols-2">
-                  <input value={staffForm.rank} onChange={(event) => setStaffForm({ ...staffForm, rank: event.target.value })} placeholder="ยศ" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none" />
-                  <input value={staffForm.name} onChange={(event) => setStaffForm({ ...staffForm, name: event.target.value })} placeholder="ชื่อเจ้าหน้าที่" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none" />
-                  <input value={staffForm.section} onChange={(event) => setStaffForm({ ...staffForm, section: event.target.value })} placeholder="ฝ่าย/ตอน" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none" />
-                  <input value={staffForm.role} onChange={(event) => setStaffForm({ ...staffForm, role: event.target.value })} placeholder="หน้าที่/ความถนัด" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none" />
-                  <input type="number" value={staffForm.points} onChange={(event) => setStaffForm({ ...staffForm, points: event.target.value })} placeholder="คะแนน" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none" />
-                  <input type="number" min="0" max="100" value={staffForm.reliability} onChange={(event) => setStaffForm({ ...staffForm, reliability: event.target.value })} placeholder="Reliability" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none" />
-                </div>
-                <div className="mt-3 grid gap-3 md:grid-cols-2">
-                  <label className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 text-sm font-bold text-slate-700"><input type="checkbox" checked={staffForm.active} onChange={(event) => setStaffForm({ ...staffForm, active: event.target.checked })} />Active พร้อมรับงาน</label>
-                  <label className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 text-sm font-bold text-slate-700"><input type="checkbox" checked={staffForm.exempt} onChange={(event) => setStaffForm({ ...staffForm, exempt: event.target.checked })} />Exempt ยกเว้นงาน</label>
-                </div>
-                <div className={`mt-3 flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-black ${staffValidation.ok ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
-                  {staffValidation.ok ? <CheckCircle2 size={17} /> : <AlertTriangle size={17} />}{staffValidation.message}
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Button disabled={!staffValidation.ok || savingStaff} className="bg-slate-950 text-white hover:bg-slate-800">{editingStaffId ? <Save size={16} /> : <Plus size={16} />}{savingStaff ? "Saving" : editingStaffId ? "บันทึกการแก้ไข" : "เพิ่มเจ้าหน้าที่"}</Button>
-                  {editingStaffId && <Button type="button" onClick={cancelEditStaff} className="bg-slate-100 text-slate-700 hover:bg-slate-200"><X size={16} /> ยกเลิกแก้ไข</Button>}
-                </div>
-              </form>
-            </Card>
-
-            <Card className="p-5 md:p-6">
-              <div className="flex items-center justify-between gap-3"><div><h2 className="text-2xl font-black">Staff Board</h2><p className="text-sm text-slate-500">คะแนนและสถานะเจ้าหน้าที่</p></div><Trophy className="text-amber-500" /></div>
-              <div className="relative mt-5"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={17} /><input value={staffQuery} onChange={(event) => setStaffQuery(event.target.value)} placeholder="ค้นหาเจ้าหน้าที่" className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-sm outline-none" /></div>
-              <div className="mt-5 space-y-3">
-                {filteredStaff.map((person, index) => (
-                  <div key={person.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                    <div className="flex items-start justify-between gap-3"><div><p className="font-black">#{index + 1} {person.rank} {person.name}</p><p className="text-sm text-slate-500">{person.section} • {person.role}</p></div><div className="text-right"><p className="font-black">{person.points}</p><p className="text-xs text-slate-400">pts</p></div></div>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <button disabled={!canManageStaff} onClick={() => toggleStaffFlag(person, "active")} className={`rounded-full px-2.5 py-1 text-xs font-black ${person.active ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>{person.active ? "Active" : "Inactive"}</button>
-                      <button disabled={!canManageStaff} onClick={() => toggleStaffFlag(person, "exempt")} className={person.exempt ? "rounded-full bg-slate-800 px-2.5 py-1 text-xs font-black text-white" : "rounded-full bg-slate-200 px-2.5 py-1 text-xs font-black text-slate-700"}>{person.exempt ? "Exempt" : "Not exempt"}</button>
-                      <Badge className="bg-indigo-50 text-indigo-700">Reliability {person.reliability}%</Badge>
+                  <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-950/25">
+                    <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+                      <p className="font-black text-white">งานล่าสุด</p>
+                      <Button className="border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-cyan-200">ดูทั้งหมด</Button>
                     </div>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <button disabled={!canManageStaff} onClick={() => startEditStaff(person)} className="inline-flex items-center gap-1 rounded-xl bg-blue-50 px-3 py-2 text-xs font-black text-blue-700 disabled:opacity-40"><Edit3 size={13} /> แก้ไข</button>
-                      <button disabled={!canManageStaff} onClick={() => deleteStaff(person.id)} className="inline-flex items-center gap-1 rounded-xl bg-rose-50 px-3 py-2 text-xs font-black text-rose-700 disabled:opacity-40"><Trash2 size={13} /> ลบ</button>
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[680px] text-left text-sm">
+                        <thead className="text-xs uppercase text-slate-500">
+                          <tr><th className="px-4 py-3">#</th><th>ชื่องาน</th><th>ผู้รับผิดชอบ</th><th>กำหนดเสร็จ</th><th>สถานะ</th><th className="pr-4">ความสำคัญ</th></tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {loading ? <tr><td colSpan="6" className="px-4 py-6 text-slate-500">กำลังโหลดข้อมูล...</td></tr> : filteredTasks.length === 0 ? <tr><td colSpan="6" className="px-4 py-6 text-slate-500">ยังไม่มีงาน หรือไม่พบรายการที่ค้นหา</td></tr> : filteredTasks.slice(0, 8).map((task, index) => (
+                            <tr key={task.id} className="text-slate-300 hover:bg-white/[0.03]">
+                              <td className="px-4 py-3 text-slate-500">{index + 1}</td>
+                              <td className="font-bold text-slate-100">{task.title}</td>
+                              <td>{task.staff?.rank} {task.staff?.name}</td>
+                              <td>{task.task_date}</td>
+                              <td><Select value={task.status} onChange={(e) => updateStatus(task.id, e.target.value)} disabled={!canUpdateTask(task)} className={`h-8 w-32 border ${statusStyle[task.status]}`}><option>ยังไม่เริ่ม</option><option>กำลังทำ</option><option>รอตรวจ</option><option>เสร็จแล้ว</option></Select></td>
+                              <td className="pr-4"><Badge className={priorityStyle[task.priority]}>{task.priority}</Badge></td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
-                ))}
-              </div>
-            </Card>
+                </div>
+              </ShellCard>
 
-            <Card className="p-5 md:p-6">
-              <div className="flex items-center justify-between"><div><h2 className="text-2xl font-black">Activity Log</h2><p className="text-sm text-slate-500">ประวัติการเพิ่ม / แก้ / ลบล่าสุด</p></div><Database className="text-slate-400" /></div>
-              <div className="mt-5 space-y-3">
-                {logs.length === 0 ? <p className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">ยังไม่มีประวัติการทำงาน</p> : logs.map((log) => (
-                  <div key={log.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-4"><div className="flex items-start justify-between gap-3"><div><p className="font-black text-slate-900">{log.action}</p><p className="mt-1 text-sm text-slate-500">{log.description}</p></div><span className="rounded-full bg-slate-200 px-2 py-1 text-xs font-black text-slate-700">{log.target_table}</span></div><p className="mt-2 text-xs text-slate-400">{new Date(log.created_at).toLocaleString()}</p></div>
-                ))}
-              </div>
-            </Card>
+              <div className="grid gap-5 xl:grid-cols-2">
+                <ShellCard className="p-5">
+                  <div className="mb-4 flex items-center justify-between"><h2 className="text-xl font-black text-white">Staff Board</h2><Button className="border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-cyan-200">ดูทั้งหมด</Button></div>
+                  <div className="space-y-2">
+                    {filteredStaff.slice(0, 6).map((person) => (
+                      <div key={person.id} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 rounded-2xl border border-white/5 bg-white/[0.03] p-3">
+                        <div><p className="font-black text-white">{person.rank} {person.name}</p><p className="text-xs text-slate-500">{person.section} • {person.role}</p></div>
+                        <Badge className={person.active ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-200" : "border-rose-400/20 bg-rose-500/10 text-rose-200"}>{person.active ? "Online" : "Offline"}</Badge>
+                        <p className="text-xs font-black text-slate-400">{person.points} pts</p>
+                      </div>
+                    ))}
+                  </div>
+                </ShellCard>
 
-            <Card className="bg-slate-950 p-5 text-white md:p-6">
-              <h2 className="text-2xl font-black">Rule Engine</h2>
-              <div className="mt-4 space-y-3 text-sm leading-6 text-slate-300">
-                <p><b className="text-white">1.</b> Role มาจาก Database เท่านั้น</p>
-                <p><b className="text-white">2.</b> Viewer ดูอย่างเดียว</p>
-                <p><b className="text-white">3.</b> Staff เปลี่ยนสถานะงานตัวเองได้</p>
-                <p><b className="text-white">4.</b> Admin/Override จัดงานได้</p>
-                <p><b className="text-white">5.</b> Super Admin จัดการ Staff และ Role ได้</p>
+                <ShellCard className="p-5">
+                  <div className="mb-4 flex items-center justify-between"><h2 className="text-xl font-black text-white">Activity Log</h2><Button className="border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-cyan-200">ดูทั้งหมด</Button></div>
+                  <div className="space-y-2">
+                    {logs.length === 0 ? <p className="rounded-2xl bg-white/[0.03] p-4 text-sm text-slate-500">ยังไม่มีประวัติการทำงาน</p> : logs.slice(0, 7).map((log) => (
+                      <div key={log.id} className="flex items-start gap-3 rounded-2xl border border-white/5 bg-white/[0.03] p-3">
+                        <div className="mt-1 rounded-xl bg-cyan-400/10 p-2 text-cyan-300"><Database size={15} /></div>
+                        <div className="min-w-0 flex-1"><p className="truncate font-black text-slate-200">{log.action}</p><p className="truncate text-xs text-slate-500">{log.description}</p></div>
+                        <p className="text-xs text-slate-600">{new Date(log.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
+                      </div>
+                    ))}
+                  </div>
+                </ShellCard>
               </div>
-              <Button onClick={fetchAll} className="mt-5 bg-white text-slate-950 hover:bg-slate-100"><RefreshCcw size={16} /> Refresh</Button>
-            </Card>
+            </div>
+
+            <div className="space-y-5">
+              <ShellCard className="p-5">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-600 to-slate-800 text-xl font-black text-white">{session.user.email?.slice(0, 1).toUpperCase()}</div>
+                  <div><p className="font-black text-white">สวัสดี, Admin</p><p className="text-sm text-slate-500">Database Role</p><Badge className="mt-2 border-violet-400/20 bg-violet-500/15 text-violet-200">{getRoleLabel(appRole)}</Badge></div>
+                </div>
+              </ShellCard>
+
+              {canManageRoles && (
+                <ShellCard className="p-5">
+                  <div className="mb-4 flex items-center justify-between"><h2 className="text-xl font-black text-white">User Role Management</h2><KeyRound className="text-cyan-300" /></div>
+                  <div className="space-y-3">
+                    {profiles.map((userProfile) => (
+                      <div key={userProfile.id} className="rounded-2xl border border-white/5 bg-white/[0.03] p-3">
+                        <p className="truncate text-sm font-black text-slate-100">{userProfile.email}</p>
+                        <p className="mt-1 text-xs text-slate-500">{userProfile.staff ? `${userProfile.staff.rank} ${userProfile.staff.name}` : "ยังไม่ผูก Staff"}</p>
+                        <div className="mt-3 grid gap-2 md:grid-cols-2">
+                          <Select value={userProfile.app_role || "viewer"} onChange={(e) => updateUserProfile(userProfile.id, { app_role: e.target.value })}>{roleOptions.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}</Select>
+                          <Select value={userProfile.staff_id || ""} onChange={(e) => updateUserProfile(userProfile.id, { staff_id: e.target.value || null })}><option value="">ไม่ผูก Staff</option>{staff.map((p) => <option key={p.id} value={p.id}>{p.rank} {p.name}</option>)}</Select>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ShellCard>
+              )}
+
+              <ShellCard className="p-5">
+                <div className="mb-4 flex items-center justify-between"><h2 className="text-xl font-black text-white">Staff Management</h2><UserPlus className="text-cyan-300" /></div>
+                <form onSubmit={saveStaff} className="space-y-3">
+                  <div className="grid gap-3 md:grid-cols-2"><Field value={staffForm.rank} onChange={(e) => setStaffForm({ ...staffForm, rank: e.target.value })} placeholder="ยศ" /><Field value={staffForm.name} onChange={(e) => setStaffForm({ ...staffForm, name: e.target.value })} placeholder="ชื่อ-นามสกุล" /></div>
+                  <div className="grid gap-3 md:grid-cols-2"><Field value={staffForm.section} onChange={(e) => setStaffForm({ ...staffForm, section: e.target.value })} placeholder="แผนก" /><Field value={staffForm.role} onChange={(e) => setStaffForm({ ...staffForm, role: e.target.value })} placeholder="ตำแหน่ง/หน้าที่" /></div>
+                  <div className="grid gap-3 md:grid-cols-2"><Field type="number" value={staffForm.points} onChange={(e) => setStaffForm({ ...staffForm, points: e.target.value })} placeholder="คะแนน" /><Field type="number" min="0" max="100" value={staffForm.reliability} onChange={(e) => setStaffForm({ ...staffForm, reliability: e.target.value })} placeholder="Reliability" /></div>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <label className="flex h-11 items-center gap-3 rounded-xl border border-white/10 bg-slate-950/40 px-3 text-sm font-bold text-slate-300"><input type="checkbox" checked={staffForm.active} onChange={(e) => setStaffForm({ ...staffForm, active: e.target.checked })} />Active</label>
+                    <label className="flex h-11 items-center gap-3 rounded-xl border border-white/10 bg-slate-950/40 px-3 text-sm font-bold text-slate-300"><input type="checkbox" checked={staffForm.exempt} onChange={(e) => setStaffForm({ ...staffForm, exempt: e.target.checked })} />Exempt</label>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3"><Button type="button" onClick={cancelEditStaff} className="border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"><X size={15} /> รีเซ็ต</Button><Button disabled={!staffValidation.ok || savingStaff} className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white"><Save size={15} /> {editingStaffId ? "บันทึกข้อมูล" : "เพิ่มพนักงาน"}</Button></div>
+                  <p className={`rounded-xl border px-3 py-2 text-xs font-black ${staffValidation.ok ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-200" : "border-rose-400/20 bg-rose-500/10 text-rose-200"}`}>{staffValidation.message}</p>
+                </form>
+              </ShellCard>
+
+              <ShellCard className="p-5">
+                <div className="mb-4 flex items-center justify-between"><h2 className="text-xl font-black text-white">Rule Engine</h2><ShieldCheck className="text-cyan-300" /></div>
+                <div className="space-y-3">
+                  {["Role มาจาก Database เท่านั้น", "Viewer ดูอย่างเดียว", "Staff เปลี่ยนสถานะงานตัวเองได้", "Admin/Override จัดงานได้", "Super Admin จัดการ Staff และ Role ได้"].map((rule, index) => (
+                    <div key={rule} className="flex items-center justify-between rounded-2xl border border-white/5 bg-white/[0.03] p-3"><p className="text-sm font-bold text-slate-300">{rule}</p><div className={`h-6 w-11 rounded-full ${index === 3 ? "bg-slate-700" : "bg-emerald-500"}`}><div className={`m-1 h-4 w-4 rounded-full bg-white ${index === 3 ? "translate-x-0" : "translate-x-5"}`} /></div></div>
+                  ))}
+                </div>
+                <Button onClick={fetchAll} className="mt-4 w-full border border-white/10 bg-white/5 text-slate-100 hover:bg-white/10"><RefreshCcw size={16} /> Refresh</Button>
+              </ShellCard>
+            </div>
           </div>
         </section>
       </div>
