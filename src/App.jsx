@@ -54,6 +54,61 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const hasSupabaseConfig = Boolean(supabaseUrl && supabaseAnonKey);
 const supabase = hasSupabaseConfig ? createClient(supabaseUrl, supabaseAnonKey) : null;
+// ===================== PUSH NOTIFICATIONS =====================
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = window.atob(base64);
+  return new Uint8Array([...raw].map((c) => c.charCodeAt(0)));
+}
+
+async function registerPushNotification(userId) {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+    throw new Error("Browser นี้ไม่รองรับ Push Notification");
+  }
+  if (!VAPID_PUBLIC_KEY) {
+    throw new Error("ยังไม่ได้ใส่ VITE_VAPID_PUBLIC_KEY ใน .env.local");
+  }
+  const registration = await navigator.serviceWorker.register("/sw.js");
+  await navigator.serviceWorker.ready;
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") {
+    throw new Error("ผู้ใช้ปฏิเสธสิทธิ์ Notification");
+  }
+  let subscription = await registration.pushManager.getSubscription();
+  if (!subscription) {
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+    });
+  }
+  const json = subscription.toJSON();
+  const { error } = await supabase.from("push_subscriptions").upsert(
+    {
+      user_id: userId,
+      endpoint: json.endpoint,
+      p256dh: json.keys.p256dh,
+      auth: json.keys.auth,
+      user_agent: navigator.userAgent,
+    },
+    { onConflict: "endpoint" }
+  );
+  if (error) throw error;
+  return subscription;
+}
+
+async function unregisterPushNotification() {
+  if (!("serviceWorker" in navigator)) return;
+  const registration = await navigator.serviceWorker.getRegistration("/sw.js");
+  if (!registration) return;
+  const subscription = await registration.pushManager.getSubscription();
+  if (subscription) {
+    await supabase.from("push_subscriptions").delete().eq("endpoint", subscription.endpoint);
+    await subscription.unsubscribe();
+  }
+}
 
 // ===================== CONSTANTS =====================
 const roleOptions = [
@@ -449,6 +504,8 @@ export default function App() {
   const [priorityFilter, setPriorityFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
 
   const appRole = profile?.app_role || "viewer";
   const canManageTasks = ["battalion_admin", "super_admin", "override"].includes(appRole);
@@ -470,6 +527,14 @@ export default function App() {
   });
 
   // Auth subscription
+  useEffect(() => {
+  if (!("serviceWorker" in navigator) || !session?.user?.id) return;
+  navigator.serviceWorker.getRegistration("/sw.js").then(async (reg) => {
+    if (!reg) return setPushEnabled(false);
+    const sub = await reg.pushManager.getSubscription();
+    setPushEnabled(Boolean(sub) && Notification.permission === "granted");
+  });
+}, [session?.user?.id]);
   useEffect(() => {
     if (!supabase) return;
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -943,7 +1008,29 @@ export default function App() {
       await writeLog("UPDATE_USER_ROLE", "user_profiles", userId, `อัปเดตผู้ใช้ ${data.email}: role=${data.app_role}`);
     }
   }
-
+  async function togglePush() {
+  if (!session?.user?.id) return;
+  setPushBusy(true);
+  setNotice("");
+  try {
+    if (pushEnabled) {
+      await unregisterPushNotification();
+      setPushEnabled(false);
+      setNotice("ปิด Push Notification แล้ว");
+    } else {
+      await registerPushNotification(session.user.id);
+      setPushEnabled(true);
+      setNotice("✅ เปิด Push Notification สำเร็จ!");
+      new Notification("TEAM-DMS", {
+        body: "Push Notification พร้อมใช้งานแล้ว 🚀",
+        icon: "/icon-192.png",
+      });
+    }
+  } catch (err) {
+    setNotice(`Error: ${err.message}`);
+  }
+  setPushBusy(false);
+}
   async function signOut() {
     if (!supabase) return;
     await supabase.auth.signOut();
@@ -1119,9 +1206,21 @@ export default function App() {
             </div>
             <div className="flex items-center gap-3">
               <LiveClock />
-              <button className="hidden rounded-xl border border-white/10 bg-white/5 p-2.5 text-slate-300 hover:bg-white/10 md:block">
-                <Bell size={18} />
-              </button>
+              <button
+  onClick={togglePush}
+  disabled={pushBusy}
+  title={pushEnabled ? "ปิด Push Notification" : "เปิด Push Notification"}
+  className={`hidden rounded-xl border p-2.5 transition md:block ${
+    pushEnabled
+      ? "border-emerald-400/40 bg-emerald-500/15 text-emerald-200"
+      : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
+  }`}
+>
+  {pushBusy
+    ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+    : <Bell size={18} className={pushEnabled ? "animate-pulse" : ""} />
+  }
+</button>
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-slate-600 to-slate-800 text-base font-black text-white shadow-lg">
                 {session.user.email?.slice(0, 1).toUpperCase()}
               </div>
