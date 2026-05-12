@@ -1210,7 +1210,7 @@ export default function App() {
   onClick={togglePush}
   disabled={pushBusy}
   title={pushEnabled ? "ปิด Push Notification" : "เปิด Push Notification"}
-  className={`hidden rounded-xl border p-2.5 transition  ${
+  className={`rounded-xl border p-2.5 transition  ${
     pushEnabled
       ? "border-emerald-400/40 bg-emerald-500/15 text-emerald-200"
       : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
